@@ -10,24 +10,19 @@ RUN pip uninstall -y vllm && \
     apt-get clean && \
     rm -rf /var/lib/apt/lists/*
 
-# Clone and install latest vLLM from source, clean up git repo after install
-RUN git clone --depth 1 https://github.com/vllm-project/vllm.git && \
-    cd vllm && \
-    pip install -e . --no-deps && \
-    pip install llguidance && \
-    pip install --upgrade transformers --no-deps && \
-    rm -rf ~/.cache/pip && \
-    cd .. && \
-    find vllm -name '.git' -type d -exec rm -rf {} + 2>/dev/null || true
+# Install latest vLLM from PyPI without dependencies to preserve NVIDIA PyTorch
+RUN pip install --no-cache-dir --no-deps vllm && \
+    pip install --no-cache-dir llguidance && \
+    pip install --no-cache-dir --upgrade --no-deps transformers
 
-# Set environment variables
-ENV PYTHONPATH=/opt/vllm
+# Set environment variables  
+ENV PYTHONPATH=/usr/local/lib/python3.10/dist-packages
 
 # Create workspace directory for model mounting
 RUN mkdir -p /workspace
 
-# Set default working directory to vllm source
-WORKDIR /opt/vllm
+# Set default working directory
+WORKDIR /workspace
 
 # Expose default port for OpenAI API
 EXPOSE 8000
