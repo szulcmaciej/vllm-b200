@@ -3,19 +3,22 @@ FROM nvcr.io/nvidia/tritonserver:25.03-vllm-python-py3
 # Set working directory
 WORKDIR /opt
 
-# Remove preinstalled vLLM to avoid conflicts
+# Remove preinstalled vLLM and clean up in one layer to reduce size
 RUN pip uninstall -y vllm && \
     rm -rf ~/.cache/pip && \
-    rm -rf /usr/local/lib/python*/dist-packages/vllm*
+    rm -rf /usr/local/lib/python*/dist-packages/vllm* && \
+    apt-get clean && \
+    rm -rf /var/lib/apt/lists/*
 
-# Clone and install latest vLLM from source
-RUN git clone https://github.com/vllm-project/vllm.git && \
+# Clone and install latest vLLM from source, clean up git repo after install
+RUN git clone --depth 1 https://github.com/vllm-project/vllm.git && \
     cd vllm && \
     pip install -e . --no-deps && \
-    pip install llguidance
-
-# Optional: Upgrade transformers for newer models (e.g., Qwen3-30B-A3B)
-RUN pip install --upgrade transformers --no-deps
+    pip install llguidance && \
+    pip install --upgrade transformers --no-deps && \
+    rm -rf ~/.cache/pip && \
+    cd .. && \
+    find vllm -name '.git' -type d -exec rm -rf {} + 2>/dev/null || true
 
 # Set environment variables
 ENV PYTHONPATH=/opt/vllm
