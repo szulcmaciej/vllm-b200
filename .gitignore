@@ -1,0 +1,18 @@
+# Docker
+.dockerignore
+
+# IDE
+.vscode/
+.idea/
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Logs
+*.log
+
+# Models (if you store them locally)
+models/
+*.bin
+*.safetensors
